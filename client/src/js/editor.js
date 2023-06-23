@@ -5,29 +5,45 @@ import { header } from './header';
 export default class {
   constructor() {
     const localData = localStorage.getItem('content');
-
-    // check if CodeMirror is loaded
-    if (typeof CodeMirror === 'undefined') {
-      throw new Error('CodeMirror is not loaded');
+  
+    // Check if CodeMirror is loaded
+    if (!window.CodeMirror) {
+      throw new Error('CodeMirror is not loaded or initiated properly');
     }
-
-    this.editor = CodeMirror(document.querySelector('#main'), {
-      value: '',
-      mode: 'javascript',
-      theme: 'monokai',
-      lineNumbers: true,
-      lineWrapping: true,
-      autofocus: true,
-      indentUnit: 2,
-      tabSize: 2,
-    });
+  
+    try {
+      this.editor = CodeMirror(document.querySelector('#main'), {
+        value: '',
+        mode: 'javascript',
+        theme: 'monokai',
+        lineNumbers: true,
+        lineWrapping: true,
+        autofocus: true,
+        indentUnit: 2,
+        tabSize: 2,
+      });
+    } catch (error) {
+      console.error('Failed to initialize CodeMirror', error);
+      return;
+    }
+  
 
     // When the editor is ready, set the value to whatever is stored in indexeddb.
     // Fall back to localStorage if nothing is stored in indexeddb, and if neither is available, set the value to header.
     getDb().then((data) => {
       console.info('Loaded data from IndexedDB, injecting into editor');
-      this.editor.setValue(data || localData || header);
+      const value = data || localData || header; // Define your initial value
+      
+      // Check if value is a non-empty string
+      if (typeof value !== 'string' || !value.trim()) {
+        console.error('Unexpected or empty value', value);
+        return;
+      }
+    
+      // Set the editor's initial value to your validated value
+      this.editor.setValue(value);
     });
+    
 
     this.editor.on('change', () => {
       localStorage.setItem('content', this.editor.getValue());
@@ -38,5 +54,8 @@ export default class {
       console.log('The editor has lost focus');
       putDb(localStorage.getItem('content'));
     });
+  }
+  toString() {
+    return this.editor.getValue();
   }
 }

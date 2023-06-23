@@ -17,7 +17,7 @@ export const putDb = async (content) => {
   const jateDB = await openDB('jate', 1);
   const tx = jateDB.transaction('jate', 'readwrite');
   const store = tx.objectStore('jate');
-  const req = store.put({ content: content });
+  const req = store.put({ value: content, id: 1 });
   const res = await req;
 };
 
@@ -26,9 +26,15 @@ export const getDb = async () => {
   const jateDB = await openDB('jate', 1);
   const tx = jateDB.transaction('jate', 'readonly');
   const store = tx.objectStore('jate');
-  const req = store.getAll();
-  const res = await req;
-  return res;
+
+  // Retrieve all saved objects and sort them by ID
+  const objects = await store.getAll();
+  objects.sort((a, b) => (a.id > b.id ? 1 : -1));
+
+  // Retrieve the value of the latest object or return empty string if no objects retrieved
+  const latestObject = objects.length > 0 ? objects[objects.length - 1] : { value: '' };
+  return latestObject.value;
 };
+
 
 initdb();

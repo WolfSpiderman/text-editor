@@ -33,7 +33,14 @@ registerRoute(
     request.destination === 'script' ||
     request.destination === 'style' ||
     request.destination === 'font' ||
-    request.destination === 'image',
+    request.destination === 'image' ||
+    request.destination === 'icon',
   pageCache
 );
+
+// Implement Offline Fallback recipe
+// offlineFallback({
+//   imageFallback: '/offline.png',
+//   exclude: [/\.json$/],
+// });
 
